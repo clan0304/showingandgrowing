@@ -29,7 +29,7 @@ type Travel = {
 type EnhancedCreator = CreatorProfile & {
   travels: Travel[];
   is_traveling: boolean;
-  matched_via_travel: boolean; // New flag
+  matched_via_travel: boolean;
 };
 
 export async function GET(req: Request) {
@@ -37,6 +37,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search') || '';
     const country = searchParams.get('country') || '';
+    const city = searchParams.get('city') || '';
 
     const today = new Date().toISOString().split('T')[0];
     const oneMonthFromNow = new Date();
@@ -64,7 +65,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // Get active travels (visible period: start_date - 30 days to end_date)
+    // Get active travels
     const { data: travels } = await supabaseAdmin
       .from('creator_travels')
       .select('*')
@@ -89,33 +90,41 @@ export async function GET(req: Request) {
           ...creator,
           travels: creatorTravels,
           is_traveling: creatorTravels.length > 0,
-          matched_via_travel: false, // Default to false
+          matched_via_travel: false,
         };
       }
     );
 
-    // Apply country filter
-    if (country) {
+    // Apply location filter (country and/or city)
+    if (country || city) {
       enhancedCreators = enhancedCreators.filter((creator) => {
-        // Match home country
-        const matchesHomeCountry = creator.country === country;
+        // Match home location
+        const matchesHomeCountry = country ? creator.country === country : true;
+        const matchesHomeCity = city ? creator.city === city : true;
+        const matchesHome = matchesHomeCountry && matchesHomeCity;
 
         // Match travel destination
-        const matchingTravels = creator.travels.filter(
-          (travel) => travel.destination_country === country
-        );
-        const matchesTravelCountry = matchingTravels.length > 0;
+        const matchingTravels = creator.travels.filter((travel) => {
+          const matchesTravelCountry = country
+            ? travel.destination_country === country
+            : true;
+          const matchesTravelCity = city
+            ? travel.destination_city === city
+            : true;
+          return matchesTravelCountry && matchesTravelCity;
+        });
+        const matchesTravel = matchingTravels.length > 0;
 
-        // If matches via travel, set flag and filter travels to only matching ones
-        if (matchesTravelCountry) {
+        // If matches via travel, set flag and show only matching travels
+        if (matchesTravel) {
           creator.matched_via_travel = true;
-          creator.travels = matchingTravels; // Only show travels to this country
+          creator.travels = matchingTravels;
         } else {
           creator.matched_via_travel = false;
-          creator.travels = []; // Don't show travels when matched via home country
+          creator.travels = [];
         }
 
-        return matchesHomeCountry || matchesTravelCountry;
+        return matchesHome || matchesTravel;
       });
     }
 

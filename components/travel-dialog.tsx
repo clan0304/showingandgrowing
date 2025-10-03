@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import CountrySearch from '@/components/country-search';
 
 type Travel = {
   id: string;
@@ -67,8 +68,22 @@ export default function TravelDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCountrySelect = (country: string | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      destination_country: country || '',
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.destination_city || !formData.destination_country) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -120,32 +135,32 @@ export default function TravelDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="destination_city">
-              Destination City <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="destination_city"
-              name="destination_city"
-              placeholder="e.g., Seoul"
-              value={formData.destination_city}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+          {/* Destination - City and Country */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="destination_city">
+                City <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="destination_city"
+                name="destination_city"
+                placeholder="e.g., Seoul"
+                value={formData.destination_city}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="destination_country">
-              Destination Country <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="destination_country"
-              name="destination_country"
-              placeholder="e.g., South Korea"
-              value={formData.destination_country}
-              onChange={handleInputChange}
-              required
-            />
+            <div className="space-y-2">
+              <Label>
+                Country <span className="text-red-500">*</span>
+              </Label>
+              <CountrySearch
+                value={formData.destination_country}
+                onSelect={handleCountrySelect}
+                placeholder="Select country"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

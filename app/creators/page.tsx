@@ -3,15 +3,19 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import CreatorCard from '@/components/creator-card';
-import { Search, Filter, X } from 'lucide-react';
+import CountrySearch from '@/components/country-search';
+import { Search, X } from 'lucide-react';
+
+type Travel = {
+  id: string;
+  creator_id: string;
+  destination_city: string;
+  destination_country: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+};
 
 type Creator = {
   id: string;
@@ -24,28 +28,16 @@ type Creator = {
   youtube_url: string | null;
   tiktok_url: string | null;
   other_url: string | null;
+  travels?: Travel[];
+  is_traveling?: boolean;
+  matched_via_travel?: boolean;
 };
 
 export default function CreatorsPage() {
   const [creators, setCreators] = useState<Creator[]>([]);
-  const [countries, setCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<string>('all'); // Changed from ""
-
-  // Fetch countries
-  useEffect(() => {
-    async function fetchCountries() {
-      try {
-        const response = await fetch('/api/creators/countries');
-        const data = await response.json();
-        setCountries(data.countries || []);
-      } catch (error) {
-        console.error('Error fetching countries:', error);
-      }
-    }
-    fetchCountries();
-  }, []);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   // Fetch creators
   useEffect(() => {
@@ -54,10 +46,7 @@ export default function CreatorsPage() {
       try {
         const params = new URLSearchParams();
         if (searchQuery) params.append('search', searchQuery);
-        if (selectedCountry && selectedCountry !== 'all') {
-          // Changed condition
-          params.append('country', selectedCountry);
-        }
+        if (selectedCountry) params.append('country', selectedCountry);
 
         const response = await fetch(`/api/creators?${params.toString()}`);
         const data = await response.json();
@@ -69,7 +58,6 @@ export default function CreatorsPage() {
       }
     }
 
-    // Debounce search
     const timeoutId = setTimeout(() => {
       fetchCreators();
     }, 300);
@@ -79,11 +67,10 @@ export default function CreatorsPage() {
 
   const clearFilters = () => {
     setSearchQuery('');
-    setSelectedCountry('all'); // Changed from ""
+    setSelectedCountry(null);
   };
 
-  const hasActiveFilters =
-    searchQuery || (selectedCountry && selectedCountry !== 'all'); // Changed condition
+  const hasActiveFilters = searchQuery || selectedCountry;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -115,27 +102,13 @@ export default function CreatorsPage() {
               />
             </div>
 
-            {/* Country Filter */}
+            {/* Country Search */}
             <div className="w-full md:w-64">
-              <Select
-                value={selectedCountry}
-                onValueChange={setSelectedCountry}
-              >
-                <SelectTrigger>
-                  <div className="flex items-center">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="All Countries" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Countries</SelectItem>
-                  {countries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CountrySearch
+                value={selectedCountry || undefined}
+                onSelect={setSelectedCountry}
+                placeholder="Filter by country..."
+              />
             </div>
 
             {/* Clear Filters */}
@@ -159,7 +132,7 @@ export default function CreatorsPage() {
                   Search: &quot;{searchQuery}&quot;
                 </div>
               )}
-              {selectedCountry && selectedCountry !== 'all' && (
+              {selectedCountry && (
                 <div className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full">
                   Country: {selectedCountry}
                 </div>

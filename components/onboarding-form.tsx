@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Briefcase, Camera } from 'lucide-react';
+import CountrySearch from '@/components/country-search';
 
 type UserType = 'creator' | 'business' | null;
 
@@ -46,8 +47,22 @@ export default function OnboardingForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCountrySelect = (country: string | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      country: country || '',
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.city || !formData.country) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -69,7 +84,6 @@ export default function OnboardingForm() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      // Force a full page reload to refresh the session
       window.location.href = '/dashboard';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -77,7 +91,6 @@ export default function OnboardingForm() {
     }
   };
 
-  // ... rest of the component stays the same
   // Step 1: User Type Selection
   if (step === 'select') {
     return (
@@ -166,6 +179,7 @@ export default function OnboardingForm() {
             </p>
           </div>
 
+          {/* Location - City and Country */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">
@@ -182,16 +196,13 @@ export default function OnboardingForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">
+              <Label>
                 Country <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="country"
-                name="country"
-                placeholder="e.g., United States"
+              <CountrySearch
                 value={formData.country}
-                onChange={handleInputChange}
-                required
+                onSelect={handleCountrySelect}
+                placeholder="Select your country"
               />
             </div>
           </div>
