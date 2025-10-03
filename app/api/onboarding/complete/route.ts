@@ -36,6 +36,42 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check if user exists in Supabase, if not create it
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (!existingUser) {
+      // User doesn't exist yet (webhook hasn't fired or completed)
+      // Get user data from Clerk
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(userId);
+
+      // Create user in Supabase
+      const { error: createUserError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: userId,
+          email: clerkUser.emailAddresses[0]?.emailAddress || '',
+          first_name: clerkUser.firstName || null,
+          last_name: clerkUser.lastName || null,
+          user_type: null,
+          onboarding_complete: false,
+        });
+
+      if (createUserError) {
+        console.error('Error creating user in Supabase:', createUserError);
+        return NextResponse.json(
+          { error: 'Failed to create user record' },
+          { status: 500 }
+        );
+      }
+
+      console.log(`User ${userId} created in Supabase during onboarding`);
+    }
+
     // Check if username is unique across both profile tables
     const { data: existingCreator } = await supabaseAdmin
       .from('creator_profiles')
@@ -115,7 +151,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Update Clerk metadata - THIS IS CRITICAL
+    // Update Clerk metadata
     const clerk = await clerkClient();
     await clerk.users.updateUserMetadata(userId, {
       publicMetadata: {
@@ -124,12 +160,10 @@ export async function POST(req: Request) {
       },
     });
 
-    // Return success with instruction to reload
     return NextResponse.json({
       success: true,
       userType,
       message: 'Onboarding completed successfully',
-      needsReload: true, // Flag to tell frontend to reload
     });
   } catch (error) {
     console.error('Onboarding error:', error);

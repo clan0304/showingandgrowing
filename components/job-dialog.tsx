@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner'; // Changed
+import { toast } from 'sonner';
+import CountrySearch from '@/components/country-search';
 
 type Job = {
   id: string;
@@ -82,8 +83,28 @@ export default function JobDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCountrySelect = (country: string | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      country: country || '',
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (
+      !formData.title ||
+      !formData.description ||
+      !formData.business_name ||
+      !formData.city ||
+      !formData.country
+    ) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -106,7 +127,7 @@ export default function JobDialog({
         );
       }
 
-      toast.success(`Job ${isEditing ? 'updated' : 'posted'} successfully.`); // Changed
+      toast.success(`Job ${isEditing ? 'updated' : 'posted'} successfully.`);
 
       onOpenChange(false);
       router.refresh();
@@ -118,7 +139,7 @@ export default function JobDialog({
           : `Failed to ${
               isEditing ? 'update' : 'create'
             } job. Please try again.`
-      ); // Changed
+      );
     } finally {
       setLoading(false);
     }
@@ -183,7 +204,7 @@ export default function JobDialog({
             />
           </div>
 
-          {/* Location */}
+          {/* Location - City and Country */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">
@@ -192,24 +213,24 @@ export default function JobDialog({
               <Input
                 id="city"
                 name="city"
-                placeholder="e.g., New York"
+                placeholder="e.g., Melbourne"
                 value={formData.city}
                 onChange={handleInputChange}
                 required
               />
+              <p className="text-xs text-gray-500">
+                When should the work be done?
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">
+              <Label>
                 Country <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="country"
-                name="country"
-                placeholder="e.g., United States"
+              <CountrySearch
                 value={formData.country}
-                onChange={handleInputChange}
-                required
+                onSelect={handleCountrySelect}
+                placeholder="e.g., Australia"
               />
             </div>
           </div>
