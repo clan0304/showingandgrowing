@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import JobCard from '@/components/job-card';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 type Job = {
@@ -25,6 +26,8 @@ type JobsClientProps = {
   savedJobIds: string[];
 };
 
+type FilterType = 'saved' | 'applied' | null;
+
 export default function JobsClient({
   appliedJobIds: initialAppliedJobIds,
   savedJobIds: initialSavedJobIds,
@@ -32,6 +35,7 @@ export default function JobsClient({
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [appliedJobIds, setAppliedJobIds] =
     useState<string[]>(initialAppliedJobIds);
   const [savedJobIds, setSavedJobIds] = useState<string[]>(initialSavedJobIds);
@@ -138,15 +142,34 @@ export default function JobsClient({
     }
   };
 
+  const handleFilterToggle = (filter: FilterType) => {
+    setActiveFilter(filter);
+  };
+
+  // Apply filters
   const filteredJobs = jobs.filter((job) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      job.title.toLowerCase().includes(query) ||
-      job.description.toLowerCase().includes(query) ||
-      job.business_name.toLowerCase().includes(query) ||
-      job.city.toLowerCase().includes(query)
-    );
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch =
+        job.title.toLowerCase().includes(query) ||
+        job.description.toLowerCase().includes(query) ||
+        job.business_name.toLowerCase().includes(query) ||
+        job.city.toLowerCase().includes(query);
+
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (activeFilter === 'saved') {
+      return savedJobIds.includes(job.id);
+    }
+
+    if (activeFilter === 'applied') {
+      return appliedJobIds.includes(job.id);
+    }
+
+    return true;
   });
 
   return (
@@ -154,9 +177,7 @@ export default function JobsClient({
       {/* Header */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Available Jobs
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Jobs</h1>
           <p className="text-gray-600">
             Find your next content creation opportunity
           </p>
@@ -179,6 +200,37 @@ export default function JobsClient({
         </div>
       </div>
 
+      {/* Filter Tabs */}
+      <div className="bg-white border-b sticky top-16 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex gap-3 overflow-x-auto">
+            <Button
+              variant={activeFilter === null ? 'default' : 'outline'}
+              onClick={() => setActiveFilter(null)}
+              className="rounded-full px-6"
+            >
+              All
+            </Button>
+
+            <Button
+              variant={activeFilter === 'saved' ? 'default' : 'outline'}
+              onClick={() => handleFilterToggle('saved')}
+              className="rounded-full px-6"
+            >
+              Saved
+            </Button>
+
+            <Button
+              variant={activeFilter === 'applied' ? 'default' : 'outline'}
+              onClick={() => handleFilterToggle('applied')}
+              className="rounded-full px-6"
+            >
+              Applied
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Jobs List */}
       <div className="container mx-auto px-4 py-8">
         {loading ? (
@@ -197,7 +249,11 @@ export default function JobsClient({
               No jobs found
             </h3>
             <p className="text-gray-600">
-              {searchQuery
+              {activeFilter === 'saved'
+                ? "You haven't saved any jobs yet"
+                : activeFilter === 'applied'
+                ? "You haven't applied to any jobs yet"
+                : searchQuery
                 ? 'Try adjusting your search query'
                 : 'Check back later for new opportunities!'}
             </p>
@@ -207,7 +263,11 @@ export default function JobsClient({
             <div className="flex items-center justify-between mb-6">
               <p className="text-gray-600">
                 {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''}{' '}
-                available
+                {activeFilter === 'saved'
+                  ? 'saved'
+                  : activeFilter === 'applied'
+                  ? 'applied'
+                  : 'available'}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

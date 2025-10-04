@@ -53,12 +53,13 @@ export default function JobCard({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow relative">
+    <Card className="hover:shadow-lg transition-shadow relative cursor-pointer">
       {/* Bookmark Icon - Top Right */}
       {showSaveButton && onSave && (
         <button
           onClick={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             onSave(job.id);
           }}
           className="absolute top-4 right-4 z-10 p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -71,55 +72,54 @@ export default function JobCard({
         </button>
       )}
 
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1 pr-10">
-            <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
-            <div className="flex items-center text-primary font-semibold mb-2">
-              <Briefcase className="w-4 h-4 mr-1" />
-              {job.business_name}
+      <Link href={`/jobs/${job.id}`}>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1 pr-10">
+              <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
+              <div className="flex items-center text-primary font-semibold mb-2">
+                <Briefcase className="w-4 h-4 mr-1" />
+                {job.business_name}
+              </div>
             </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent>
-        <p className="text-gray-600 mb-4 line-clamp-3">{job.description}</p>
+        <CardContent>
+          <div className="space-y-2 text-sm text-gray-600">
+            {/* Location */}
+            <div className="flex items-center">
+              <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+              {job.city}, {job.country}
+            </div>
 
-        <div className="space-y-2 text-sm text-gray-600">
-          {/* Location */}
-          <div className="flex items-center">
-            <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-            {job.city}, {job.country}
+            {/* Date */}
+            {job.job_date && (
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                {formatDate(job.job_date)}
+              </div>
+            )}
+
+            {/* Time */}
+            {job.job_time && (
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                {formatTime(job.job_time)}
+              </div>
+            )}
           </div>
-
-          {/* Date */}
-          {job.job_date && (
-            <div className="flex items-center">
-              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-              {formatDate(job.job_date)}
-            </div>
-          )}
-
-          {/* Time */}
-          {job.job_time && (
-            <div className="flex items-center">
-              <Clock className="w-4 h-4 mr-2 text-gray-400" />
-              {formatTime(job.job_time)}
-            </div>
-          )}
-        </div>
-      </CardContent>
+        </CardContent>
+      </Link>
 
       <CardFooter className="flex gap-2">
-        <Link href={`/jobs/${job.id}`} className="flex-1">
-          <Button variant="outline" className="w-full">
-            View Details
-          </Button>
-        </Link>
         {showApplyButton && onApply && (
           <Button
-            onClick={() => onApply(job.id)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onApply(job.id);
+            }}
             className="flex-1"
             disabled={isApplied}
           >
