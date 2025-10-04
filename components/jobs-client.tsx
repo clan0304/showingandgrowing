@@ -22,16 +22,19 @@ type Job = {
 
 type JobsClientProps = {
   appliedJobIds: string[];
+  savedJobIds: string[];
 };
 
 export default function JobsClient({
   appliedJobIds: initialAppliedJobIds,
+  savedJobIds: initialSavedJobIds,
 }: JobsClientProps) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedJobIds, setAppliedJobIds] =
     useState<string[]>(initialAppliedJobIds);
+  const [savedJobIds, setSavedJobIds] = useState<string[]>(initialSavedJobIds);
   const router = useRouter();
 
   useEffect(() => {
@@ -48,7 +51,7 @@ export default function JobsClient({
         setJobs(data.jobs || []);
       } catch (error) {
         console.error('Error fetching jobs:', error);
-        toast.error('Failed to load jobs. Please try again.'); // Changed
+        toast.error('Failed to load jobs. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -75,7 +78,7 @@ export default function JobsClient({
 
       setAppliedJobIds((prev) => [...prev, jobId]);
 
-      toast.success('Your application has been submitted.'); // Changed
+      toast.success('Your application has been submitted.');
 
       router.refresh();
     } catch (error) {
@@ -84,7 +87,54 @@ export default function JobsClient({
         error instanceof Error
           ? error.message
           : 'Failed to apply. Please try again.'
-      ); // Changed
+      );
+    }
+  };
+
+  const handleSave = async (jobId: string) => {
+    const isSaved = savedJobIds.includes(jobId);
+
+    try {
+      if (isSaved) {
+        // Unsave
+        const response = await fetch(`/api/saved-jobs?job_id=${jobId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to unsave job');
+        }
+
+        setSavedJobIds((prev) => prev.filter((id) => id !== jobId));
+        toast.success('Job removed from saved.');
+      } else {
+        // Save
+        const response = await fetch('/api/saved-jobs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ job_id: jobId }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to save job');
+        }
+
+        setSavedJobIds((prev) => [...prev, jobId]);
+        toast.success('Job saved!');
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error('Error saving job:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to save job. Please try again.'
+      );
     }
   };
 
@@ -167,6 +217,9 @@ export default function JobsClient({
                   job={job}
                   onApply={handleApply}
                   isApplied={appliedJobIds.includes(job.id)}
+                  showSaveButton={true}
+                  onSave={handleSave}
+                  isSaved={savedJobIds.includes(job.id)}
                 />
               ))}
             </div>

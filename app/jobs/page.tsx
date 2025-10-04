@@ -10,7 +10,7 @@ export default async function JobsPage() {
     redirect('/sign-in');
   }
 
-  // Get user type from Supabase (more reliable than JWT during development)
+  // Get user type from Supabase
   const { data: user } = await supabaseAdmin
     .from('users')
     .select('user_type, onboarding_complete')
@@ -45,5 +45,13 @@ export default async function JobsPage() {
 
   const appliedJobIds = applications?.map((app) => app.job_id) || [];
 
-  return <JobsClient appliedJobIds={appliedJobIds} />;
+  // Get user's saved jobs
+  const { data: savedJobs } = await supabaseAdmin
+    .from('saved_jobs')
+    .select('job_id')
+    .eq('creator_id', userId);
+
+  const savedJobIds = savedJobs?.map((saved) => saved.job_id) || [];
+
+  return <JobsClient appliedJobIds={appliedJobIds} savedJobIds={savedJobIds} />;
 }

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { MapPin, Calendar, Clock, Briefcase } from 'lucide-react';
+import { MapPin, Calendar, Clock, Briefcase, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type JobCardProps = {
@@ -24,6 +24,9 @@ type JobCardProps = {
   showApplyButton?: boolean;
   onApply?: (jobId: string) => void;
   isApplied?: boolean;
+  showSaveButton?: boolean;
+  onSave?: (jobId: string) => void;
+  isSaved?: boolean;
 };
 
 export default function JobCard({
@@ -31,6 +34,9 @@ export default function JobCard({
   showApplyButton = true,
   onApply,
   isApplied = false,
+  showSaveButton = false,
+  onSave,
+  isSaved = false,
 }: JobCardProps) {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null;
@@ -47,10 +53,27 @@ export default function JobCard({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow relative">
+      {/* Bookmark Icon - Top Right */}
+      {showSaveButton && onSave && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onSave(job.id);
+          }}
+          className="absolute top-4 right-4 z-10 p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <Bookmark
+            className={`w-5 h-5 ${
+              isSaved ? 'fill-primary text-primary' : 'text-gray-400'
+            }`}
+          />
+        </button>
+      )}
+
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="flex-1">
+          <div className="flex-1 pr-10">
             <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
             <div className="flex items-center text-primary font-semibold mb-2">
               <Briefcase className="w-4 h-4 mr-1" />
