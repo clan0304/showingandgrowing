@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect, useCallback } from 'react';
 import ProfileDropdown from '@/components/profile-dropdown';
 import ProfileEditDialog from '@/components/profile-edit-dialog';
+import Image from 'next/image';
+import Logo from '/public/logo.png';
 
 type ProfileData = {
   username: string;
@@ -64,9 +66,13 @@ export default function Navbar() {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-900">
-                CreatorHub
-              </span>
+              <Image
+                src={Logo}
+                alt="Logo"
+                width={150}
+                height={50}
+                className="hover:scale-105"
+              />
             </Link>
 
             {/* Navigation Links */}
