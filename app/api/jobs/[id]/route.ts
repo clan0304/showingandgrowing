@@ -5,9 +5,10 @@ import { NextResponse } from 'next/server';
 // GET - Get single job
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await props.params;
     const { data: job, error } = await supabaseAdmin
       .from('jobs')
       .select('*')
@@ -31,7 +32,7 @@ export async function GET(
 // PATCH - Update job (business owner only, own jobs only)
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   const { userId, sessionClaims } = await auth();
 
@@ -49,6 +50,8 @@ export async function PATCH(
   }
 
   try {
+    const params = await props.params;
+
     // Check if job belongs to user
     const { data: existingJob } = await supabaseAdmin
       .from('jobs')
@@ -110,7 +113,7 @@ export async function PATCH(
 // DELETE - Delete job (business owner only, own jobs only)
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   const { userId, sessionClaims } = await auth();
 
@@ -128,6 +131,8 @@ export async function DELETE(
   }
 
   try {
+    const params = await props.params;
+
     // Check if job belongs to user
     const { data: existingJob } = await supabaseAdmin
       .from('jobs')

@@ -7,12 +7,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 type Props = {
-  params: {
+  params: Promise<{
     username: string;
-  };
+  }>;
 };
 
-export default async function CreatorProfilePage({ params }: Props) {
+export default async function CreatorProfilePage(props: Props) {
+  const params = await props.params;
   const { username } = params;
 
   // Fetch creator profile

@@ -4,12 +4,12 @@ import { supabaseAdmin } from '@/lib/supabase';
 import JobDetailClient from '@/components/job-detail-client';
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-export default async function JobDetailPage({ params }: Props) {
+export default async function JobDetailPage(props: Props) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -30,6 +30,8 @@ export default async function JobDetailPage({ params }: Props) {
   if (user.user_type !== 'creator') {
     redirect('/dashboard');
   }
+
+  const params = await props.params;
 
   // Fetch job details
   const { data: job, error } = await supabaseAdmin

@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 // DELETE - Delete travel
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
 
@@ -14,6 +14,8 @@ export async function DELETE(
   }
 
   try {
+    const params = await props.params;
+
     // Check if travel belongs to user
     const { data: travel } = await supabaseAdmin
       .from('creator_travels')
@@ -54,7 +56,7 @@ export async function DELETE(
 // PATCH - Update travel
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
 
@@ -63,6 +65,8 @@ export async function PATCH(
   }
 
   try {
+    const params = await props.params;
+
     // Check if travel belongs to user
     const { data: existingTravel } = await supabaseAdmin
       .from('creator_travels')
