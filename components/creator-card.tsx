@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +22,7 @@ type CreatorCardProps = {
       end_date: string;
     }>;
     is_traveling?: boolean;
-    matched_via_travel?: boolean; // New prop
+    matched_via_travel?: boolean;
   };
 };
 
@@ -39,9 +41,6 @@ export default function CreatorCard({ creator }: CreatorCardProps) {
     });
   };
 
-  // Only show travel badge/info if:
-  // 1. Creator has travels AND
-  // 2. Either no country filter (matched_via_travel is undefined) OR matched via travel
   const shouldShowTravel =
     creator.travels &&
     creator.travels.length > 0 &&
@@ -49,50 +48,56 @@ export default function CreatorCard({ creator }: CreatorCardProps) {
       creator.matched_via_travel === true);
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="pt-6">
-        <Link href={`/creators/${creator.username}`}>
-          <div className="mb-4">
-            {/* Avatar/Initial */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-3 relative">
-              <span className="text-2xl font-bold text-white">
-                {creator.username.charAt(0).toUpperCase()}
-              </span>
+    <Card className="group hover:shadow-xl hover:border-primary/20 transition-all duration-300 overflow-hidden h-full flex flex-col">
+      <CardContent className="pb-6 flex-1">
+        <Link href={`/creators/${creator.username}`} className="block">
+          <div className="space-y-4">
+            <div className="relative w-20 h-20 mb-2">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <span className="text-3xl font-bold text-white">
+                  {creator.username.charAt(0).toUpperCase()}
+                </span>
+              </div>
               {shouldShowTravel && (
-                <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
-                  <Plane className="w-3 h-3 text-white" />
+                <div className="absolute -top-1 -right-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-1.5 shadow-md ring-2 ring-white">
+                  <Plane className="w-3.5 h-3.5 text-white" />
                 </div>
               )}
             </div>
 
-            {/* Username */}
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              @{creator.username}
-            </h3>
+            <div>
+              <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                @{creator.username}
+              </h3>
 
-            {/* Location */}
-            <div className="flex items-center text-sm text-gray-500 mb-3">
-              <MapPin className="w-4 h-4 mr-1" />
-              {creator.city}, {creator.country}
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="font-medium">
+                  {creator.city}, {creator.country}
+                </span>
+              </div>
             </div>
 
-            {/* Travel Badge - Only shown when filtering by travel destination */}
             {shouldShowTravel && (
-              <div className="mb-3">
+              <div className="flex flex-wrap gap-2">
                 {creator.travels!.map((travel, index) => (
-                  <Badge key={index} variant="secondary" className="mb-1 mr-1">
-                    <Plane className="w-3 h-3 mr-1" />
-                    Traveling to {travel.destination_city} (
-                    {formatDate(travel.start_date)} -{' '}
-                    {formatDate(travel.end_date)})
+                  <Badge
+                    key={index}
+                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 px-3 py-1.5 text-xs font-medium"
+                  >
+                    <Plane className="w-3 h-3 mr-1.5" />
+                    <span>
+                      {travel.destination_city} ·{' '}
+                      {formatDate(travel.start_date)} -{' '}
+                      {formatDate(travel.end_date)}
+                    </span>
                   </Badge>
                 ))}
               </div>
             )}
 
-            {/* Bio */}
             {creator.bio && (
-              <p className="text-sm text-gray-600 line-clamp-3 mb-3">
+              <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                 {creator.bio}
               </p>
             )}
@@ -100,10 +105,9 @@ export default function CreatorCard({ creator }: CreatorCardProps) {
         </Link>
       </CardContent>
 
-      <CardFooter className="pt-0">
-        {/* Social Links */}
+      <CardFooter className="pt-4 pb-6 border-t bg-muted/30">
         {socialLinks.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap w-full">
             {socialLinks.map((link) => (
               <a
                 key={link.name}
@@ -111,12 +115,13 @@ export default function CreatorCard({ creator }: CreatorCardProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
+                className="flex-1 min-w-fit"
               >
                 <Badge
                   variant="secondary"
-                  className="hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                  className="w-full justify-center hover:bg-primary hover:text-primary-foreground hover:scale-105 transition-all duration-200 cursor-pointer py-2 px-3 font-medium shadow-sm"
                 >
-                  <link.icon className="w-3 h-3 mr-1" />
+                  <link.icon className="w-3.5 h-3.5 mr-1.5" />
                   {link.name}
                 </Badge>
               </a>

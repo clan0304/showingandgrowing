@@ -442,7 +442,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>© 2025 CreatorHub. All rights reserved.</p>
+            <p>© 2025 ShowingandGrowing. All rights reserved.</p>
           </div>
         </div>
       </footer>

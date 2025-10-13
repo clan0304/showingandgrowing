@@ -34,6 +34,9 @@ type Job = {
   country: string;
   job_date: string | null;
   job_time: string | null;
+  industry: string; // ✅ Add this
+  payment_range: string | null; // ✅ Add this
+  payment_notes: string | null; // ✅ Add this
   created_at: string;
 };
 

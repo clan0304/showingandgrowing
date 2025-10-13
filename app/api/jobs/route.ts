@@ -80,10 +80,20 @@ export async function POST(req: Request) {
       country,
       job_date,
       job_time,
+      industry,
+      payment_range,
+      payment_notes,
     } = body;
 
     // Validate required fields
-    if (!title || !description || !business_name || !city || !country) {
+    if (
+      !title ||
+      !description ||
+      !business_name ||
+      !city ||
+      !country ||
+      !industry
+    ) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -101,6 +111,9 @@ export async function POST(req: Request) {
         country,
         job_date: job_date || null,
         job_time: job_time || null,
+        industry,
+        payment_range: payment_range || null,
+        payment_notes: payment_notes || null,
       })
       .select()
       .single();
